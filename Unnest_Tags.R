@@ -5,17 +5,13 @@
 #This seems more difficult to do in Pandas:
 #https://stackoverflow.com/questions/53218931/how-to-unnest-explode-a-column-in-a-pandas-dataframe
 
-
-
 library(tidyverse)
 library(jsonlite)
 library(tibble)
 
-
-
 #load in the data and look at it
 
-test <- fromJSON("~/Desktop/untitled folder/06-21-2020-T-01-21-41_tags_export.json")
+test <- fromJSON("~/Desktop/06-23-2020-dump.json")
 str(test)
 
 #flatten it
@@ -30,3 +26,19 @@ t_tbl
 untest <- unnest(t_tbl,image.tags)
 
 # get df with only Catalog, Archive, filename, tags
+
+
+Buxton <- untest %>%
+  filter(catalogName == 'Buxton Coastal Camera') 
+
+Labels <- Buxton$tags$collisionType
+
+Buxton <- Buxton %>%
+  select(catalogName, archiveName, image.fileName) %>%
+  add_column(Labels) %>%
+  group_by(catalogName, archiveName, image.fileName, Labels) %>%
+  mutate(Count = n()) %>%
+  distinct() %>%
+  pivot_wider(names_from = Labels, values_from = Count)
+
+write_csv(Buxton, 'Buxtondata.csv')
